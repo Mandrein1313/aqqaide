@@ -3,14 +3,13 @@ name: Build and Release APK
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
   build:
-    name: Build APK
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # จำเป็นสำหรับการเขียน Release
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v6
@@ -21,19 +20,16 @@ jobs:
           java-version: 17
           distribution: 'temurin'
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v5
-
       - name: Grant Permissions for Gradle
         run: chmod +x gradlew
 
-      # สั่ง Build APK (assembleDebug หรือ assembleRelease)
       - name: Build APK
         run: ./gradlew assembleDebug
 
-      # อัปโหลดไฟล์ APK ให้ดาวน์โหลดได้จากหน้า GitHub Actions
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: app-debug-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          tag_name: build-${{ github.run_number }}
+          name: Build ${{ github.run_number }}
+          body: "Auto-generated build from GitHub Actions."
+          files: app/build/outputs/apk/debug/app-debug.apk
