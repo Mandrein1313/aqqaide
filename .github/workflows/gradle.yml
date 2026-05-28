@@ -2,7 +2,7 @@ name: Build and Release APK
 
 on:
   push:
-    branches: [ "master" ] # เปลี่ยนเป็น master ตามชื่อ branch ในรูป 118987.jpg
+    branches: [ "master" ]
   workflow_dispatch:
 
 jobs:
@@ -23,9 +23,13 @@ jobs:
       - name: Grant Permissions for Gradle
         run: chmod +x gradlew
 
-      # เพิ่มตัวแปรนี้เพื่อให้มั่นใจว่ามัน build จริง
+      # เพิ่มคำสั่ง build ให้เจาะจงขึ้น
       - name: Build APK
         run: ./gradlew :app:assembleDebug
+
+      # เพิ่มขั้นตอนตรวจสอบว่าไฟล์ APK อยู่ที่ไหน
+      - name: Find APK
+        run: find . -name "*.apk"
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
@@ -34,4 +38,5 @@ jobs:
           tag_name: build-${{ github.run_number }}
           name: Build ${{ github.run_number }}
           body: "Auto-generated build."
-          files: app/build/outputs/apk/debug/*.apk
+          files: |
+            app/build/outputs/apk/debug/*.apk
