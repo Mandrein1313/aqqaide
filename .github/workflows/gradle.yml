@@ -9,7 +9,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # จำเป็นสำหรับการเขียน Release
+      contents: write
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v6
@@ -26,10 +26,21 @@ jobs:
       - name: Build APK
         run: ./gradlew assembleDebug
 
+      # --- ส่วนนี้คือส่วนตรวจสอบตำแหน่งไฟล์ ---
+      - name: Debug - Find APK file
+        run: |
+          echo "กำลังหาไฟล์ APK ในโปรเจกต์..."
+          find . -name "*.apk"
+          echo "โครงสร้างโฟลเดอร์ปัจจุบัน:"
+          ls -R app/build/outputs/apk/
+      # -----------------------------------
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
           name: Build ${{ github.run_number }}
-          body: "Auto-generated build from GitHub Actions."
-          files: app/build/outputs/apk/debug/app-debug.apk
+          body: "Auto-generated build."
+          files: |
+            app/build/outputs/apk/debug/*.apk
+            app/build/outputs/apk/*.apk
