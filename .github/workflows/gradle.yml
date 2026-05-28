@@ -20,20 +20,24 @@ jobs:
           java-version: 17
           distribution: 'temurin'
 
+      # 1. ให้มันสำรวจโฟลเดอร์ทั้งหมดก่อนว่าไฟล์โปรเจกต์อยู่ที่ไหน
+      - name: Find Project Root
+        run: |
+          echo "สำรวจไฟล์ในโปรเจกต์:"
+          find . -maxdepth 3 -name "build.gradle"
+          echo "--------------------------------"
+          ls -R
+
       - name: Grant Permissions for Gradle
         run: chmod +x gradlew
 
+      # 2. Build โดยใช้พารามิเตอร์เพื่อให้เห็น Log ชัดขึ้น
       - name: Build APK
-        run: ./gradlew assembleDebug
+        run: ./gradlew assembleDebug --stacktrace
 
-      # --- ส่วนนี้คือส่วนตรวจสอบตำแหน่งไฟล์ ---
-      - name: Debug - Find APK file
-        run: |
-          echo "กำลังหาไฟล์ APK ในโปรเจกต์..."
-          find . -name "*.apk"
-          echo "โครงสร้างโฟลเดอร์ปัจจุบัน:"
-          ls -R app/build/outputs/apk/
-      # -----------------------------------
+      # 3. ค้นหาไฟล์ APK จริงๆ ว่าอยู่ที่ไหน
+      - name: Locate APK
+        run: find . -name "*.apk"
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
@@ -42,5 +46,4 @@ jobs:
           name: Build ${{ github.run_number }}
           body: "Auto-generated build."
           files: |
-            app/build/outputs/apk/debug/*.apk
-            app/build/outputs/apk/*.apk
+            **/app-debug.apk
