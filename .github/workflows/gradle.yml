@@ -2,7 +2,7 @@ name: Build and Release APK
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "master" ] # เปลี่ยนเป็น master ตามชื่อ branch ในรูป 118987.jpg
   workflow_dispatch:
 
 jobs:
@@ -20,30 +20,18 @@ jobs:
           java-version: 17
           distribution: 'temurin'
 
-      # 1. ให้มันสำรวจโฟลเดอร์ทั้งหมดก่อนว่าไฟล์โปรเจกต์อยู่ที่ไหน
-      - name: Find Project Root
-        run: |
-          echo "สำรวจไฟล์ในโปรเจกต์:"
-          find . -maxdepth 3 -name "build.gradle"
-          echo "--------------------------------"
-          ls -R
-
       - name: Grant Permissions for Gradle
         run: chmod +x gradlew
 
-      # 2. Build โดยใช้พารามิเตอร์เพื่อให้เห็น Log ชัดขึ้น
+      # เพิ่มตัวแปรนี้เพื่อให้มั่นใจว่ามัน build จริง
       - name: Build APK
-        run: ./gradlew assembleDebug --stacktrace
-
-      # 3. ค้นหาไฟล์ APK จริงๆ ว่าอยู่ที่ไหน
-      - name: Locate APK
-        run: find . -name "*.apk"
+        run: ./gradlew :app:assembleDebug
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
+        if: success()
         with:
           tag_name: build-${{ github.run_number }}
           name: Build ${{ github.run_number }}
           body: "Auto-generated build."
-          files: |
-            **/app-debug.apk
+          files: app/build/outputs/apk/debug/*.apk
